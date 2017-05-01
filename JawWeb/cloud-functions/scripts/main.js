@@ -100,9 +100,9 @@ FriendlyChat.prototype.saveMessage = function(e) {
   }
 };
 
-// Sets the URL of the given img element with the URL of the image stored in Cloud Storage.
+// Sets the URL of the given img element with the URL of the image stored in Firebase Storage.
 FriendlyChat.prototype.setImageUrl = function(imageUri, imgElement) {
-  // If the image is a Cloud Storage URI we fetch the URL.
+  // If the image is a Firebase Storage URI we fetch the URL.
   if (imageUri.startsWith('gs://')) {
     imgElement.src = FriendlyChat.LOADING_IMAGE_URL; // Display a loading image first.
     this.storage.refFromURL(imageUri).getMetadata().then(function(metadata) {
@@ -143,7 +143,7 @@ FriendlyChat.prototype.saveImageMessage = function(event) {
       photoUrl: currentUser.photoURL || '/images/profile_placeholder.png'
     }).then(function(data) {
 
-      // Upload the image to Cloud Storage.
+      // Upload the image to Firebase Storage.
       var filePath = currentUser.uid + '/' + data.key + '/' + file.name;
       return this.storage.ref(filePath).put(file).then(function(snapshot) {
 
@@ -152,7 +152,7 @@ FriendlyChat.prototype.saveImageMessage = function(event) {
         return data.update({imageUrl: this.storage.ref(fullPath).toString()});
       }.bind(this));
     }.bind(this)).catch(function(error) {
-      console.error('There was an error uploading a file to Cloud Storage:', error);
+      console.error('There was an error uploading a file to Firebase Storage:', error);
     });
   }
 };
