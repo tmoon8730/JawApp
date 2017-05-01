@@ -37,6 +37,15 @@ The iOS project has not been started yet :(
 
 Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
 
+## History
+
+### April 2017
+- Started Android application
+- Got basic version working
+
+### May 2017
+- Started Web application
+
 ## Authors
 
 * **Tyler Moon** - *Main Developer / Owner* - [tmoon8730](https://github.com/tmoon8730)
