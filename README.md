@@ -41,7 +41,7 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 
 * **Tyler Moon** - *Main Developer / Owner* - [tmoon8730](https://github.com/tmoon8730)
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/tmoon8730/JawApp/blob/master/CONTRIBUTORS.txt) who participated in this project.
 
 ## License
 
