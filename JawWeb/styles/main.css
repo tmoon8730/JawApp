@@ -92,12 +92,19 @@ main, #messages-card {
 }
 .message-container .name {
   display: inline-block;
-  width: 100%;
+  width: 90%;
   padding-left: 40px;
   color: #bbb;
   font-style: italic;
   font-size: 12px;
   box-sizing: border-box;
+}
+.message-container .date {
+  display: table-cell;
+  width:90%;
+  color: #bbb;
+  font-style: italic;
+  font-size: 12px;
 }
 #message-form {
   display: flex;
