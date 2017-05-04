@@ -105,6 +105,7 @@ FriendlyChat.prototype.saveMessage = function(e) {
 };
 
 // Sets the current user to the read status
+//TODO: This may be redudant lol
 FriendlyChat.prototype.readStatus = function(){
   // Check that the user is signed in
   if(this.checkSignedInWithMessage()){
@@ -118,6 +119,7 @@ FriendlyChat.prototype.readStatus = function(){
       });
   }
 };
+// Sets the key of a message to the user so that the read status can be determined
 FriendlyChat.prototype.saveKey = function(key){
 
   var currentUser = this.auth.currentUser;
@@ -291,7 +293,8 @@ FriendlyChat.MESSAGE_TEMPLATE =
       '<div class="spacing"><div class="pic"></div></div>' +
       '<div class="message"></div>' +
       '<div class="name"></div>' +
-      '<div class="date"></div>'
+      '<div class="date"></div>' +
+      '<div class="readStatus"></div>'
     '</div>';
 
 // A loading image URL.
@@ -313,6 +316,20 @@ FriendlyChat.prototype.displayMessage = function(key, name, text, picUrl, imageU
   }
   div.querySelector('.name').textContent = name;
   div.querySelector('.date').textContent = sentDate;
+
+  // Query currentUsers to see if any user has the key of this current message
+  this.currentUsersRef = this.database.ref('currentUsers');
+  this.currentUser = this.auth.currentUser;
+  this.currentUsersRef.once("value", function(snapshot){
+    snapshot.forEach(function(data){
+      if(data.val().lastMsgKey == key){
+        // Set the readStatus field to the current users name
+        div.querySelector('.readStatus').textContent = div.querySelector('.readStatus').textContent + " " + data.val().name;
+        console.log(data.key + " " + JSON.stringify(data.val()));
+      };
+    });
+  });
+
   var messageElement = div.querySelector('.message');
   if (text) { // If the message is text.
     messageElement.textContent = text;
