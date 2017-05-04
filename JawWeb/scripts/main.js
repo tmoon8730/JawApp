@@ -72,10 +72,11 @@ FriendlyChat.prototype.loadMessages = function() {
   // Loads the last 12 messages and listen for new ones.
   var setMessage = function(data) {
     var val = data.val();
-    this.displayMessage(data.key, val.name, val.text, val.photoUrl, val.imageUrl, val.sentDate);
+    this.displayMessage(data.key, val.name, val.text, val.photoUrl, val.imageUrl, val.sentDate); // Show the image in the view
+    this.saveKey(data.key); // Save the key to the currentUser as the most recently read
   }.bind(this);
-  this.messagesRef.limitToLast(50).on('child_added', setMessage);
-  this.messagesRef.limitToLast(50).on('child_changed', setMessage);
+  this.messagesRef.limitToLast(50).on('child_added', setMessage); // Event listener for added elements
+  this.messagesRef.limitToLast(50).on('child_changed', setMessage); // Event listener for changed elements
 };
 
 // Saves a new message on the Firebase DB.
@@ -103,6 +104,31 @@ FriendlyChat.prototype.saveMessage = function(e) {
   }
 };
 
+// Sets the current user to the read status
+FriendlyChat.prototype.readStatus = function(){
+  // Check that the user is signed in
+  if(this.checkSignedInWithMessage()){
+    var currentUser = this.auth.currentUser;
+
+    // Add entry to the Firebase Database.
+    firebase.database().ref('currentUsers').child(currentUser.displayName)
+      .set({
+        name:currentUser.displayName,
+        photoUrl: currentUser.photoURL || '/images/profile_placeholder.png'
+      });
+  }
+};
+FriendlyChat.prototype.saveKey = function(key){
+
+  var currentUser = this.auth.currentUser;
+
+  firebase.database().ref('/currentUsers').child(currentUser.displayName)
+    .set({
+      name: currentUser.displayName,
+      photoUrl: currentUser.photoUrl || '/images/profile_placeholder.png',
+      lastMsgKey: key
+    });
+}
 // Sets the URL of the given img element with the URL of the image stored in Firebase Storage.
 FriendlyChat.prototype.setImageUrl = function(imageUri, imgElement) {
   // If the image is a Firebase Storage URI we fetch the URL.
@@ -194,6 +220,7 @@ FriendlyChat.prototype.onAuthStateChanged = function(user) {
 
     // We load currently existing chant messages.
     this.loadMessages();
+    this.readStatus();
 
     // We save the Firebase Messaging Device token and enable notifications.
     this.saveMessagingDeviceToken();
@@ -305,7 +332,6 @@ FriendlyChat.prototype.displayMessage = function(key, name, text, picUrl, imageU
   this.messageList.scrollTop = this.messageList.scrollHeight;
   this.messageInput.focus();
 };
-
 // Enables or disables the submit button depending on the values of the input
 // fields.
 FriendlyChat.prototype.toggleButton = function() {
