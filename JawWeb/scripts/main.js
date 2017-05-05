@@ -61,7 +61,25 @@ FriendlyChat.prototype.initFirebase = function() {
   // Initiates Firebase auth and listen to auth state changes.
   this.auth.onAuthStateChanged(this.onAuthStateChanged.bind(this));
 
+};
 
+// Loads chat messages history and listens for upcoming ones.
+FriendlyChat.prototype.loadMessages = function() {
+  // Reference to the /messages/ database path.
+  this.messagesRef = this.database.ref('messages');
+  // Make sure we remove all previous listeners.
+  this.messagesRef.off();
+  // Loads the last 12 messages and listen for new ones.
+  var setMessage = function(data) {
+    var val = data.val();
+    this.displayMessage(data.key, val.name, val.text, val.photoUrl, val.imageUrl, val.sentDate); // Show the image in the view
+    this.saveKey(data.key); // Save the key to the currentUser as the most recently read
+  }.bind(this);
+  this.messagesRef.limitToLast(50).on('child_added', setMessage); // Event listener for added elements
+  this.messagesRef.limitToLast(50).on('child_changed', setMessage); // Event listener for changed elements
+};
+
+FriendlyChat.prototype.setCurrentUsers = function(){
   // Set connect and disconnect for current users dialog
   this.currentUser = this.auth.currentUser;
 
@@ -81,35 +99,20 @@ FriendlyChat.prototype.initFirebase = function() {
   this.currentUsersRef.onDisconnect().update({
     present: false
   });
-};
 
-// Loads chat messages history and listens for upcoming ones.
-FriendlyChat.prototype.loadMessages = function() {
-
-  // Reference to the /messages/ database path.
-  this.messagesRef = this.database.ref('messages');
-  // Make sure we remove all previous listeners.
-  this.messagesRef.off();
-
-  // Loads the last 12 messages and listen for new ones.
-  var setMessage = function(data) {
-    var val = data.val();
-    this.displayMessage(data.key, val.name, val.text, val.photoUrl, val.imageUrl, val.sentDate); // Show the image in the view
-    this.saveKey(data.key); // Save the key to the currentUser as the most recently read
-  }.bind(this);
-  this.messagesRef.limitToLast(50).on('child_added', setMessage); // Event listener for added elements
-  this.messagesRef.limitToLast(50).on('child_changed', setMessage); // Event listener for changed elements
-};
-
-FriendlyChat.prototype.setCurrentUsers(){
   // A reference to the /currentUsers database path
   this.currentRef = this.database.ref('currentUsers');
   // Make sure all the previous listeners are off
   this.currentRef.off();
 
   var setText = function(data){
-
+    var div = document.getElementById('currentUsersText');
+    if(data.val().present == true){
+      div.textContent = div.textContent + " " + data.val().name;
+    }
   }
+  this.currentRef.on('child_added', setText);
+  this.currentRef.on('child_changed', setText);
 }
 
 // Saves a new message on the Firebase DB.
