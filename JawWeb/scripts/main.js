@@ -323,9 +323,11 @@ FriendlyChat.prototype.displayMessage = function(key, name, text, picUrl, imageU
   this.currentUsersRef.once("value", function(snapshot){
     snapshot.forEach(function(data){
       if(data.val().lastMsgKey == key){
-        // Set the readStatus field to the current users name
-        div.querySelector('.readStatus').textContent = div.querySelector('.readStatus').textContent + " " + data.val().name;
-        console.log(data.key + " " + JSON.stringify(data.val()));
+        // Set the readStatus field to the current users name if the name is not already in the querySelector
+        if(!div.querySelector('.readStatus').textContent.includes(data.val().name)){
+          div.querySelector('.readStatus').textContent = div.querySelector('.readStatus').textContent + " " + data.val().name;
+          console.log(data.key + " " + JSON.stringify(data.val()));
+        }
       };
     });
   });
