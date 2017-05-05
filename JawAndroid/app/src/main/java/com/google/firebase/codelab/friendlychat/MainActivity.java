@@ -61,6 +61,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 import com.google.firebase.appindexing.Action;
@@ -189,7 +190,7 @@ public class MainActivity extends AppCompatActivity
                     viewHolder.messageTextView.setVisibility(TextView.VISIBLE);
                     viewHolder.messageImageView.setVisibility(ImageView.GONE);
 
-                    Map<String, Object> userUpdates = new HashMap<String, Object>();
+                    Map<String, Object> userUpdates = new HashMap<>();
                     userUpdates.put("lastMsgKey",friendlyMessage.getId());
                     userUpdates.put("present", true);
                     mFirebaseDatabaseReference.child(friendlyMessage.getName()).updateChildren(userUpdates);
@@ -507,5 +508,37 @@ public class MainActivity extends AppCompatActivity
         mMessageEditText.setFilters(new InputFilter[]{new
                 InputFilter.LengthFilter(friendly_msg_length.intValue())});
         Log.d(TAG, "FML is: " + friendly_msg_length);
+    }
+
+    /*
+     * determine connect and disconnect state for current users dialog.
+     */
+    private void detectConnectionState() {
+
+        DatabaseReference connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected");
+        final Map<String, Object> userUpdates = new HashMap<>();
+        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        connectedRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                boolean connected = snapshot.getValue(Boolean.class);
+                if (connected) { //database state is connected
+                    userUpdates.put("present", true);
+                    mFirebaseDatabaseReference.child(user.getDisplayName()).updateChildren(userUpdates);
+                    System.out.println("connected");
+
+                } else { //database state is disconnected
+                    userUpdates.put("present", false);
+                    mFirebaseDatabaseReference.child(user.getDisplayName()).updateChildren(userUpdates);
+                    System.out.println("not connected");
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                System.err.println("Listener was cancelled");
+            }
+        });
     }
 }
