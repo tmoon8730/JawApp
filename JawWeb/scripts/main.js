@@ -60,10 +60,32 @@ FriendlyChat.prototype.initFirebase = function() {
   this.storage = firebase.storage();
   // Initiates Firebase auth and listen to auth state changes.
   this.auth.onAuthStateChanged(this.onAuthStateChanged.bind(this));
+
+
+  // Set connect and disconnect for current users dialog
+  this.currentUser = this.auth.currentUser;
+
+  this.connectedRef = firebase.database().ref(".info/connected");
+  this.currentUsersRef = firebase.database().ref("/currentUsers").child(this.currentUser.displayName);;
+
+  var setPresent = function(data){
+    if(data.val() === true){
+      // Connected
+      this.currentUsersRef.update({
+          present: true
+        });
+    }
+  }.bind(this);
+  this.connectedRef.on("value", setPresent);
+
+  this.currentUsersRef.onDisconnect().update({
+    present: false
+  });
 };
 
 // Loads chat messages history and listens for upcoming ones.
 FriendlyChat.prototype.loadMessages = function() {
+
   // Reference to the /messages/ database path.
   this.messagesRef = this.database.ref('messages');
   // Make sure we remove all previous listeners.
@@ -78,6 +100,17 @@ FriendlyChat.prototype.loadMessages = function() {
   this.messagesRef.limitToLast(50).on('child_added', setMessage); // Event listener for added elements
   this.messagesRef.limitToLast(50).on('child_changed', setMessage); // Event listener for changed elements
 };
+
+FriendlyChat.prototype.setCurrentUsers(){
+  // A reference to the /currentUsers database path
+  this.currentRef = this.database.ref('currentUsers');
+  // Make sure all the previous listeners are off
+  this.currentRef.off();
+
+  var setText = function(data){
+
+  }
+}
 
 // Saves a new message on the Firebase DB.
 FriendlyChat.prototype.saveMessage = function(e) {
@@ -113,7 +146,7 @@ FriendlyChat.prototype.readStatus = function(){
 
     // Add entry to the Firebase Database.
     firebase.database().ref('currentUsers').child(currentUser.displayName)
-      .set({
+      .update({
         name:currentUser.displayName,
         photoUrl: currentUser.photoURL || '/images/profile_placeholder.png'
       });
@@ -125,10 +158,11 @@ FriendlyChat.prototype.saveKey = function(key){
   var currentUser = this.auth.currentUser;
 
   firebase.database().ref('/currentUsers').child(currentUser.displayName)
-    .set({
+    .update({
       name: currentUser.displayName,
       photoUrl: currentUser.photoUrl || '/images/profile_placeholder.png',
-      lastMsgKey: key
+      lastMsgKey: key,
+      present: true
     });
 }
 // Sets the URL of the given img element with the URL of the image stored in Firebase Storage.
@@ -222,6 +256,7 @@ FriendlyChat.prototype.onAuthStateChanged = function(user) {
 
     // We load currently existing chant messages.
     this.loadMessages();
+    this.setCurrentUsers();
     this.readStatus();
 
     // We save the Firebase Messaging Device token and enable notifications.
