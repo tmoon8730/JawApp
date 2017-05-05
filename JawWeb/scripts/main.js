@@ -60,6 +60,7 @@ FriendlyChat.prototype.initFirebase = function() {
   this.storage = firebase.storage();
   // Initiates Firebase auth and listen to auth state changes.
   this.auth.onAuthStateChanged(this.onAuthStateChanged.bind(this));
+
 };
 
 // Loads chat messages history and listens for upcoming ones.
@@ -68,15 +69,57 @@ FriendlyChat.prototype.loadMessages = function() {
   this.messagesRef = this.database.ref('messages');
   // Make sure we remove all previous listeners.
   this.messagesRef.off();
-
   // Loads the last 12 messages and listen for new ones.
   var setMessage = function(data) {
     var val = data.val();
-    this.displayMessage(data.key, val.name, val.text, val.photoUrl, val.imageUrl, val.sentDate);
+    this.displayMessage(data.key, val.name, val.text, val.photoUrl, val.imageUrl, val.sentDate); // Show the image in the view
+    this.saveKey(data.key); // Save the key to the currentUser as the most recently read
   }.bind(this);
-  this.messagesRef.limitToLast(50).on('child_added', setMessage);
-  this.messagesRef.limitToLast(50).on('child_changed', setMessage);
+  this.messagesRef.limitToLast(50).on('child_added', setMessage); // Event listener for added elements
+  this.messagesRef.limitToLast(50).on('child_changed', setMessage); // Event listener for changed elements
 };
+
+FriendlyChat.prototype.setCurrentUsers = function(){
+  // Set connect and disconnect for current users dialog
+  this.currentUser = this.auth.currentUser;
+
+  this.connectedRef = firebase.database().ref(".info/connected");
+  this.currentUsersRef = firebase.database().ref("/currentUsers").child(this.currentUser.displayName);;
+
+  var setPresent = function(data){
+    if(data.val() === true){
+      // Connected
+      this.currentUsersRef.update({
+          present: true
+        });
+    }
+  }.bind(this);
+  this.connectedRef.on("value", setPresent);
+
+  this.currentUsersRef.onDisconnect().update({
+    present: false
+  });
+
+  // A reference to the /currentUsers database path
+  this.currentRef = this.database.ref('currentUsers');
+  // Make sure all the previous listeners are off
+  this.currentRef.off();
+
+  var setText = function(data){
+    console.log("Change?");
+    var div = document.getElementById('currentUsersText');
+    if(data.val().present == true && !(div.textContent.includes(data.val().name))){
+      div.textContent = div.textContent + " " + data.val().name;
+    }else{
+      div.textContent = div.textContent.replace(data.val().name,"");
+    }
+    console.log(div.textContent);
+  }.bind(this);
+
+  this.currentRef.on('child_changed', setText);
+  this.currentRef.on('child_added', setText);
+
+}
 
 // Saves a new message on the Firebase DB.
 FriendlyChat.prototype.saveMessage = function(e) {
@@ -103,6 +146,34 @@ FriendlyChat.prototype.saveMessage = function(e) {
   }
 };
 
+// Sets the current user to the read status
+//TODO: This may be redudant lol
+FriendlyChat.prototype.readStatus = function(){
+  // Check that the user is signed in
+  if(this.checkSignedInWithMessage()){
+    var currentUser = this.auth.currentUser;
+
+    // Add entry to the Firebase Database.
+    firebase.database().ref('currentUsers').child(currentUser.displayName)
+      .update({
+        name:currentUser.displayName,
+        photoUrl: currentUser.photoURL || '/images/profile_placeholder.png'
+      });
+  }
+};
+// Sets the key of a message to the user so that the read status can be determined
+FriendlyChat.prototype.saveKey = function(key){
+
+  var currentUser = this.auth.currentUser;
+
+  firebase.database().ref('/currentUsers').child(currentUser.displayName)
+    .update({
+      name: currentUser.displayName,
+      photoUrl: currentUser.photoUrl || '/images/profile_placeholder.png',
+      lastMsgKey: key,
+      present: true
+    });
+}
 // Sets the URL of the given img element with the URL of the image stored in Firebase Storage.
 FriendlyChat.prototype.setImageUrl = function(imageUri, imgElement) {
   // If the image is a Firebase Storage URI we fetch the URL.
@@ -194,6 +265,8 @@ FriendlyChat.prototype.onAuthStateChanged = function(user) {
 
     // We load currently existing chant messages.
     this.loadMessages();
+    this.setCurrentUsers();
+    this.readStatus();
 
     // We save the Firebase Messaging Device token and enable notifications.
     this.saveMessagingDeviceToken();
@@ -264,7 +337,8 @@ FriendlyChat.MESSAGE_TEMPLATE =
       '<div class="spacing"><div class="pic"></div></div>' +
       '<div class="message"></div>' +
       '<div class="name"></div>' +
-      '<div class="date"></div>'
+      '<div class="date"></div>' +
+      '<div class="readStatus"></div>'
     '</div>';
 
 // A loading image URL.
@@ -286,6 +360,22 @@ FriendlyChat.prototype.displayMessage = function(key, name, text, picUrl, imageU
   }
   div.querySelector('.name').textContent = name;
   div.querySelector('.date').textContent = sentDate;
+
+  // Query currentUsers to see if any user has the key of this current message
+  this.currentUsersRef = this.database.ref('currentUsers');
+  this.currentUser = this.auth.currentUser;
+  this.currentUsersRef.once("value", function(snapshot){
+    snapshot.forEach(function(data){
+      if(data.val().lastMsgKey == key){
+        // Set the readStatus field to the current users name if the name is not already in the querySelector
+        if(!div.querySelector('.readStatus').textContent.includes(data.val().name)){
+          div.querySelector('.readStatus').textContent = div.querySelector('.readStatus').textContent + " " + data.val().name;
+          console.log(data.key + " " + JSON.stringify(data.val()));
+        }
+      };
+    });
+  });
+
   var messageElement = div.querySelector('.message');
   if (text) { // If the message is text.
     messageElement.textContent = text;
@@ -305,7 +395,6 @@ FriendlyChat.prototype.displayMessage = function(key, name, text, picUrl, imageU
   this.messageList.scrollTop = this.messageList.scrollHeight;
   this.messageInput.focus();
 };
-
 // Enables or disables the submit button depending on the values of the input
 // fields.
 FriendlyChat.prototype.toggleButton = function() {
