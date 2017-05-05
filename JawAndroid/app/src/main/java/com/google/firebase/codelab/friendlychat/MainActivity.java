@@ -178,6 +178,9 @@ public class MainActivity extends AppCompatActivity
             }
 
             @Override
+            /*
+             * populates the users initial view of the chat.
+             */
             protected void populateViewHolder(final MessageViewHolder viewHolder,
                                               FriendlyMessage friendlyMessage, int position) {
                 mProgressBar.setVisibility(ProgressBar.INVISIBLE);
@@ -185,6 +188,11 @@ public class MainActivity extends AppCompatActivity
                     viewHolder.messageTextView.setText(friendlyMessage.getText());
                     viewHolder.messageTextView.setVisibility(TextView.VISIBLE);
                     viewHolder.messageImageView.setVisibility(ImageView.GONE);
+
+                    Map<String, Object> userUpdates = new HashMap<String, Object>();
+                    userUpdates.put("lastMsgKey",friendlyMessage.getId());
+                    userUpdates.put("present", true);
+                    mFirebaseDatabaseReference.child(friendlyMessage.getName()).updateChildren(userUpdates);
 
                 } else {
                     String imageUrl = friendlyMessage.getImageUrl();
