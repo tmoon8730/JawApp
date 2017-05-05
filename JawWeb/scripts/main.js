@@ -106,13 +106,19 @@ FriendlyChat.prototype.setCurrentUsers = function(){
   this.currentRef.off();
 
   var setText = function(data){
+    console.log("Change?");
     var div = document.getElementById('currentUsersText');
-    if(data.val().present == true){
+    if(data.val().present == true && !(div.textContent.includes(data.val().name))){
       div.textContent = div.textContent + " " + data.val().name;
+    }else{
+      div.textContent = div.textContent.replace(data.val().name,"");
     }
-  }
-  this.currentRef.on('child_added', setText);
+    console.log(div.textContent);
+  }.bind(this);
+
   this.currentRef.on('child_changed', setText);
+  this.currentRef.on('child_added', setText);
+
 }
 
 // Saves a new message on the Firebase DB.
