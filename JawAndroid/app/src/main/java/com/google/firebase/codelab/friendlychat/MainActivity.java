@@ -215,6 +215,7 @@ public class MainActivity extends AppCompatActivity
                     userUpdates.put("present", true);
                     mFirebaseDatabaseReference.child(friendlyMessage.getName()).updateChildren(userUpdates);
                     detectConnectionState();
+                    userIndicatorAnim(viewHolder);
 
                 } else {
                     String imageUrl = friendlyMessage.getImageUrl();
@@ -572,14 +573,14 @@ public class MainActivity extends AppCompatActivity
      * Not Present - user icon will shrink and disappear from the bottom of the chat
      *
      */
-    private void userIndicatorAnim() {
+    private void userIndicatorAnim(final MessageViewHolder viewHolder) {
         final ScaleAnimation growAnim = new ScaleAnimation(1.0f, 1.15f, 1.0f, 1.15f);
         final ScaleAnimation shrinkAnim = new ScaleAnimation(1.15f, 1.0f, 1.15f, 1.0f);
 
         growAnim.setDuration(2000);
         shrinkAnim.setDuration(2000);
 
-        //ViewGoesHere.setAnimation(growAnim);
+        viewHolder.messengerImageView.setAnimation(growAnim);
         growAnim.start();
 
         growAnim.setAnimationListener(new Animation.AnimationListener()
@@ -593,7 +594,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onAnimationEnd(Animation animation)
             {
-                //ViewGoesHere.setAnimation(shrinkAnim);
+                viewHolder.messengerImageView.setAnimation(shrinkAnim);
                 shrinkAnim.start();
             }
         });
@@ -608,7 +609,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onAnimationEnd(Animation animation)
             {
-                //ViewGoesHere.setAnimation(growAnim);
+                viewHolder.messengerImageView.setAnimation(growAnim);
                 growAnim.start();
             }
         });
