@@ -79,13 +79,33 @@ FriendlyChat.prototype.loadMessages = function() {
   this.messagesRef.limitToLast(50).on('child_changed', setMessage); // Event listener for changed elements
 };
 
+// Template for the current users
+FriendlyChat.USER_TEMPLATE =
+  '<div class="user">' +
+    '<div class="mdl-layout_content">' +
+      '<div class="mdl-grid">' +
+        '<div class="mdl-cell mdl-cell--1-col">' +
+          '<div class="pic"></div>'+
+        '</div>' +
+        '<div class="mdl-cell mdl-cell--5-col">' +
+          '<div class="name"></div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+  '</div>'
+// Method for setting a user as currently viewing the chat
 FriendlyChat.prototype.setCurrentUsers = function(){
   // Set connect and disconnect for current users dialog
   this.currentUser = this.auth.currentUser;
 
+  // Reference to .info/connected which returns if a database connection is present or not
   this.connectedRef = firebase.database().ref(".info/connected");
+  this.connectedRef.off();
+  // Reference for /currentUsers/<currentUser> to set the present flag
   this.currentUsersRef = firebase.database().ref("/currentUsers").child(this.currentUser.displayName);;
+  this.currentUsersRef.off();
 
+  // Bind function for changes in the connection reference
   var setPresent = function(data){
     if(data.val() === true){
       // Connected
@@ -95,27 +115,35 @@ FriendlyChat.prototype.setCurrentUsers = function(){
     }
   }.bind(this);
   this.connectedRef.on("value", setPresent);
-
-  this.currentUsersRef.onDisconnect().update({
-    present: false
-  });
+  this.currentUsersRef.onDisconnect().update({present: false});
 
   // A reference to the /currentUsers database path
   this.currentRef = this.database.ref('currentUsers');
   // Make sure all the previous listeners are off
   this.currentRef.off();
 
+  // Bind function for changing the present users textbox on the bottom of the screen
   var setText = function(data){
-    console.log("Change?");
     var div = document.getElementById('currentUsersText');
-    if(data.val().present == true && !(div.textContent.includes(data.val().name))){
-      div.textContent = div.textContent + " " + data.val().name;
+    // If the present flag is set to true (meaning there is a database connection
+    // for that user) and the name is not already in the div, then add the name ot the div
+    if(data.val().present == true /*&& !(div.querySelector('.'+data.val().name) != null*/){
+      var user = document.createElement('div');
+      user.innerHTML = FriendlyChat.USER_TEMPLATE;
+      user.setAttribute('id',data.val().name);
+      console.log("photoUrl: " + data.val().photoUrl)
+      if(data.val().photoUrl)
+        user.querySelector('.pic').style.backgroundImage = 'url(' + /*data.val().photoUrl*/ "https:\/\/lh3.googleusercontent.com/-GblqLhBzE2Y/AAAAAAAAAAI/AAAAAAAAkG0/zz7dLUckhto/photo.jpg" + ')';
+      user.querySelector('.name').textContent = data.val().name;
+
+      div.appendChild(user);
+      //div.textContent = div.textContent + " " + data.val().name;
     }else{
-      div.textContent = div.textContent.replace(data.val().name,"");
+      console.log("eh");
     }
-    console.log(div.textContent);
   }.bind(this);
 
+  // Set binds for when a user is changed or added to the /currentUsers location
   this.currentRef.on('child_changed', setText);
   this.currentRef.on('child_added', setText);
 
