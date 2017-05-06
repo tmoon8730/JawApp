@@ -572,6 +572,11 @@ public class MainActivity extends AppCompatActivity
      * Present - user icon will grow and appear in the bottom of the chat
      * Not Present - user icon will shrink and disappear from the bottom of the chat
      *
+     * EXPERIMENTAL
+     *
+     * TODO - toggle animations for users who are present vs not present
+     * TODO - Have user indicators displayed in the bottom of the chat
+     *
      */
     private void userIndicatorAnim(final MessageViewHolder viewHolder) {
         final ScaleAnimation growAnim = new ScaleAnimation(1.0f, 1.15f, 1.0f, 1.15f);
