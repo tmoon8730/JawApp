@@ -33,6 +33,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.ScaleAnimation;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -54,6 +56,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.appindexing.builders.Actions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.crash.FirebaseCrash;
@@ -81,6 +84,23 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainActivity extends AppCompatActivity
         implements GoogleApiClient.OnConnectionFailedListener {
+
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    public Action getIndexApiAction() {
+        return Actions.newView("Main", "http://[ENTER-YOUR-URL-HERE]");
+    }
+
+    @Override
+    public void onStop() {
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        FirebaseUserActions.getInstance().end(getIndexApiAction());
+        super.onStop();
+    }
 
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
         TextView messageTextView;
@@ -338,6 +358,9 @@ public class MainActivity extends AppCompatActivity
         super.onStart();
         // Check if user is signed in.
         // TODO: Add code to check if user is signed in.
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        FirebaseUserActions.getInstance().start(getIndexApiAction());
     }
 
     @Override
@@ -539,6 +562,54 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onCancelled(DatabaseError error) {
                 System.err.println("Listener was cancelled");
+            }
+        });
+    }
+
+    /*
+     * Animation for user indicators
+     * Present - user icon will grow and appear in the bottom of the chat
+     * Not Present - user icon will shrink and disappear from the bottom of the chat
+     *
+     */
+    private void userIndicatorAnim() {
+        final ScaleAnimation growAnim = new ScaleAnimation(1.0f, 1.15f, 1.0f, 1.15f);
+        final ScaleAnimation shrinkAnim = new ScaleAnimation(1.15f, 1.0f, 1.15f, 1.0f);
+
+        growAnim.setDuration(2000);
+        shrinkAnim.setDuration(2000);
+
+        //ViewGoesHere.setAnimation(growAnim);
+        growAnim.start();
+
+        growAnim.setAnimationListener(new Animation.AnimationListener()
+        {
+            @Override
+            public void onAnimationStart(Animation animation){}
+
+            @Override
+            public void onAnimationRepeat(Animation animation){}
+
+            @Override
+            public void onAnimationEnd(Animation animation)
+            {
+                //ViewGoesHere.setAnimation(shrinkAnim);
+                shrinkAnim.start();
+            }
+        });
+        shrinkAnim.setAnimationListener(new Animation.AnimationListener()
+        {
+            @Override
+            public void onAnimationStart(Animation animation){}
+
+            @Override
+            public void onAnimationRepeat(Animation animation){}
+
+            @Override
+            public void onAnimationEnd(Animation animation)
+            {
+                //ViewGoesHere.setAnimation(growAnim);
+                growAnim.start();
             }
         });
     }
