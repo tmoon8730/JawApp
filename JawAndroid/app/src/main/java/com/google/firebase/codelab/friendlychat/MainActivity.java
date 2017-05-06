@@ -194,6 +194,7 @@ public class MainActivity extends AppCompatActivity
                     userUpdates.put("lastMsgKey",friendlyMessage.getId());
                     userUpdates.put("present", true);
                     mFirebaseDatabaseReference.child(friendlyMessage.getName()).updateChildren(userUpdates);
+                    detectConnectionState();
 
                 } else {
                     String imageUrl = friendlyMessage.getImageUrl();
