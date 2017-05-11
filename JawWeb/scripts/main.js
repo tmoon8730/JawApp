@@ -125,19 +125,22 @@ FriendlyChat.prototype.setCurrentUsers = function(){
   // Bind function for changing the present users textbox on the bottom of the screen
   var setText = function(data){
     var div = document.getElementById('currentUsersText');
-    // If the present flag is set to true (meaning there is a database connection
-    // for that user) and the name is not already in the div, then add the name ot the div
-    if(data.val().present == true /*&& !(div.querySelector('.'+data.val().name) != null*/){
-      var user = document.createElement('div');
-      user.innerHTML = FriendlyChat.USER_TEMPLATE;
-      user.setAttribute('id',data.val().name);
-      console.log("photoUrl: " + data.val().photoUrl)
-      if(data.val().photoUrl)
-        user.querySelector('.pic').style.backgroundImage = 'url(' + /*data.val().photoUrl*/ "https:\/\/lh3.googleusercontent.com/-GblqLhBzE2Y/AAAAAAAAAAI/AAAAAAAAkG0/zz7dLUckhto/photo.jpg" + ')';
-      user.querySelector('.name').textContent = data.val().name;
 
-      div.appendChild(user);
-      //div.textContent = div.textContent + " " + data.val().name;
+    if(data.val().present == true){
+      var checkName = '.' + data.val().name.replace(' ','');
+      var queryCheck = div.querySelector(checkName);
+      console.log("checkName " + checkName + " check " + queryCheck);
+      if(queryCheck == null){
+        var user = document.createElement('div');
+        user.innerHTML = FriendlyChat.USER_TEMPLATE;
+        user.setAttribute('class',data.val().name.replace(' ',''));
+
+        if(data.val().photoUrl)
+          user.querySelector('.pic').style.content = 'url(' + data.val().photoUrl /* "https:\/\/lh3.googleusercontent.com/-GblqLhBzE2Y/AAAAAAAAAAI/AAAAAAAAkG0/zz7dLUckhto/photo.jpg"*/ + ')';
+        user.querySelector('.name').textContent = data.val().name;
+
+        div.appendChild(user);
+      }
     }else{
       console.log("eh");
     }

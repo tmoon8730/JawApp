@@ -33,7 +33,7 @@ main, #messages-card {
   margin-top: 17px;
 }
 .mdl-grid {
-  max-width: 1048px; 
+  max-width: 1048px;
   margin: auto;
 }
 .material-icons {
@@ -80,6 +80,12 @@ main, #messages-card {
   height: 30px;
   background-size: 30px;
   border-radius: 20px;
+}
+.mdl-cell .pic {
+  background-repeat: no-repeat;
+  width: 30px;
+  height:30px;
+  background-size: 30px;
 }
 .message-container .spacing {
   display: table-cell;
