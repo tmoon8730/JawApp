@@ -1,3 +1,11 @@
+# leave out json files as those are config and Firebase backup files
 *.json
 
+# Obviously keep out all the node modules as they have to be installed by node anyway
 node_modules/
+
+# Keep out this directory as its just used as config stuff
+.idea
+
+# Keep out the log from Firebase serves
+JawWeb/*.log
