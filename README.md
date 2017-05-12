@@ -48,6 +48,7 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 - Started JawWeb application
 - JawWeb application working
 - Current user and user read status on both JawAndroid and JawWeb
+- Added encryption to database stored messages
 
 ## Authors
 
