@@ -41,11 +41,13 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 ## History
 
 ### April 2017
-- Started Android application
+- Started JawAndroid application
 - Got basic version working
 
 ### May 2017
-- Started Web application
+- Started JawWeb application
+- JawWeb application working
+- Current user and user read status on both JawAndroid and JawWeb
 
 ## Authors
 
