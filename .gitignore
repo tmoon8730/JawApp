@@ -9,3 +9,6 @@ node_modules/
 
 # Keep out the log from Firebase serves
 JawWeb/*.log
+
+# Don't need to keep the Playground up on the clouds
+JawPlayground

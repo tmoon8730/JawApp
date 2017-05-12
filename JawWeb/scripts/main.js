@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 'use strict';
-// Initializes FriendlyChat.
-function FriendlyChat() {
+
+
+// Initializes JawApp.
+function JawApp() {
   this.checkSetup();
 
   // Shortcuts to DOM Elements.
@@ -53,7 +55,7 @@ function FriendlyChat() {
 }
 
 // Sets up shortcuts to Firebase features and initiate firebase auth.
-FriendlyChat.prototype.initFirebase = function() {
+JawApp.prototype.initFirebase = function() {
   // Shortcuts to Firebase SDK features.
   this.auth = firebase.auth();
   this.database = firebase.database();
@@ -64,7 +66,7 @@ FriendlyChat.prototype.initFirebase = function() {
 };
 
 // Loads chat messages history and listens for upcoming ones.
-FriendlyChat.prototype.loadMessages = function() {
+JawApp.prototype.loadMessages = function() {
   // Reference to the /messages/ database path.
   this.messagesRef = this.database.ref('messages');
   // Make sure we remove all previous listeners.
@@ -80,7 +82,7 @@ FriendlyChat.prototype.loadMessages = function() {
 };
 
 // Template for the current users
-FriendlyChat.USER_TEMPLATE =
+JawApp.USER_TEMPLATE =
   '<div class="user">' +
     '<div class="mdl-layout_content">' +
       '<div class="mdl-grid">' +
@@ -94,7 +96,7 @@ FriendlyChat.USER_TEMPLATE =
     '</div>' +
   '</div>'
 // Method for setting a user as currently viewing the chat
-FriendlyChat.prototype.setCurrentUsers = function(){
+JawApp.prototype.setCurrentUsers = function(){
   // Set connect and disconnect for current users dialog
   this.currentUser = this.auth.currentUser;
 
@@ -132,7 +134,7 @@ FriendlyChat.prototype.setCurrentUsers = function(){
       console.log("checkName " + checkName + " check " + queryCheck);
       if(queryCheck == null){
         var user = document.createElement('div');
-        user.innerHTML = FriendlyChat.USER_TEMPLATE;
+        user.innerHTML = JawApp.USER_TEMPLATE;
         user.setAttribute('class',data.val().name.replace(' ',''));
 
         if(data.val().photoUrl)
@@ -153,23 +155,24 @@ FriendlyChat.prototype.setCurrentUsers = function(){
 }
 
 // Saves a new message on the Firebase DB.
-FriendlyChat.prototype.saveMessage = function(e) {
+JawApp.prototype.saveMessage = function(e) {
   e.preventDefault();
   // Check that the user entered a message and is signed in.
   if (this.messageInput.value && this.checkSignedInWithMessage()) {
     var currentUser = this.auth.currentUser;
     // Get the current date for the date-stamp
     var date = new Date().toLocaleString();
-
+    // Encrypt the text using the security module
+    var encryptedMessage = JawAppSecurity.encrypt(this.messageInput.value);
     // Add a new message entry to the Firebase Database.
     this.messagesRef.push({
       name: currentUser.displayName,
-      text: this.messageInput.value,
+      text: encryptedMessage,
       photoUrl: currentUser.photoURL || '/images/profile_placeholder.png',
       sentDate: date
     }).then(function() {
       // Clear message text field and SEND button state.
-      FriendlyChat.resetMaterialTextfield(this.messageInput);
+      JawApp.resetMaterialTextfield(this.messageInput);
       this.toggleButton();
     }.bind(this)).catch(function(error) {
       console.error('Error writing new message to Firebase Database', error);
@@ -179,7 +182,7 @@ FriendlyChat.prototype.saveMessage = function(e) {
 
 // Sets the current user to the read status
 //TODO: This may be redudant lol
-FriendlyChat.prototype.readStatus = function(){
+JawApp.prototype.readStatus = function(){
   // Check that the user is signed in
   if(this.checkSignedInWithMessage()){
     var currentUser = this.auth.currentUser;
@@ -193,7 +196,7 @@ FriendlyChat.prototype.readStatus = function(){
   }
 };
 // Sets the key of a message to the user so that the read status can be determined
-FriendlyChat.prototype.saveKey = function(key){
+JawApp.prototype.saveKey = function(key){
 
   var currentUser = this.auth.currentUser;
 
@@ -206,10 +209,10 @@ FriendlyChat.prototype.saveKey = function(key){
     });
 }
 // Sets the URL of the given img element with the URL of the image stored in Firebase Storage.
-FriendlyChat.prototype.setImageUrl = function(imageUri, imgElement) {
+JawApp.prototype.setImageUrl = function(imageUri, imgElement) {
   // If the image is a Firebase Storage URI we fetch the URL.
   if (imageUri.startsWith('gs://')) {
-    imgElement.src = FriendlyChat.LOADING_IMAGE_URL; // Display a loading image first.
+    imgElement.src = JawApp.LOADING_IMAGE_URL; // Display a loading image first.
     this.storage.refFromURL(imageUri).getMetadata().then(function(metadata) {
       imgElement.src = metadata.downloadURLs[0];
     });
@@ -220,7 +223,7 @@ FriendlyChat.prototype.setImageUrl = function(imageUri, imgElement) {
 
 // Saves a new message containing an image URI in Firebase.
 // This first saves the image in Firebase storage.
-FriendlyChat.prototype.saveImageMessage = function(event) {
+JawApp.prototype.saveImageMessage = function(event) {
   event.preventDefault();
   var file = event.target.files[0];
 
@@ -244,7 +247,7 @@ FriendlyChat.prototype.saveImageMessage = function(event) {
     var currentUser = this.auth.currentUser;
     this.messagesRef.push({
       name: currentUser.displayName,
-      imageUrl: FriendlyChat.LOADING_IMAGE_URL,
+      imageUrl: JawApp.LOADING_IMAGE_URL,
       photoUrl: currentUser.photoURL || '/images/profile_placeholder.png'
     }).then(function(data) {
 
@@ -263,20 +266,20 @@ FriendlyChat.prototype.saveImageMessage = function(event) {
 };
 
 // Signs-in Friendly Chat.
-FriendlyChat.prototype.signIn = function() {
+JawApp.prototype.signIn = function() {
   // Sign in Firebase using popup auth and Google as the identity provider.
   var provider = new firebase.auth.GoogleAuthProvider();
   this.auth.signInWithPopup(provider);
 };
 
 // Signs-out of Friendly Chat.
-FriendlyChat.prototype.signOut = function() {
+JawApp.prototype.signOut = function() {
   // Sign out of Firebase.
   this.auth.signOut();
 };
 
 // Triggers when the auth state change for instance when the user signs-in or signs-out.
-FriendlyChat.prototype.onAuthStateChanged = function(user) {
+JawApp.prototype.onAuthStateChanged = function(user) {
   if (user) { // User is signed in!
     // Get profile pic and user's name from the Firebase user object.
     var profilePicUrl = user.photoURL;
@@ -313,7 +316,7 @@ FriendlyChat.prototype.onAuthStateChanged = function(user) {
 };
 
 // Returns true if user is signed-in. Otherwise false and displays a message.
-FriendlyChat.prototype.checkSignedInWithMessage = function() {
+JawApp.prototype.checkSignedInWithMessage = function() {
   // Return true if the user is signed in Firebase
   if (this.auth.currentUser) {
     return true;
@@ -329,7 +332,7 @@ FriendlyChat.prototype.checkSignedInWithMessage = function() {
 };
 
 // Saves the messaging device token to the datastore.
-FriendlyChat.prototype.saveMessagingDeviceToken = function() {
+JawApp.prototype.saveMessagingDeviceToken = function() {
   firebase.messaging().getToken().then(function(currentToken) {
     if (currentToken) {
       console.log('Got FCM device token:', currentToken);
@@ -346,7 +349,7 @@ FriendlyChat.prototype.saveMessagingDeviceToken = function() {
 };
 
 // Requests permissions to show notifications.
-FriendlyChat.prototype.requestNotificationsPermissions = function() {
+JawApp.prototype.requestNotificationsPermissions = function() {
   console.log('Requesting notifications permission...');
   firebase.messaging().requestPermission().then(function() {
     // Notification permission granted.
@@ -357,13 +360,13 @@ FriendlyChat.prototype.requestNotificationsPermissions = function() {
 };
 
 // Resets the given MaterialTextField.
-FriendlyChat.resetMaterialTextfield = function(element) {
+JawApp.resetMaterialTextfield = function(element) {
   element.value = '';
   element.parentNode.MaterialTextfield.boundUpdateClassesHandler();
 };
 
 // Template for messages.
-FriendlyChat.MESSAGE_TEMPLATE =
+JawApp.MESSAGE_TEMPLATE =
     '<div class="message-container">' +
       '<div class="spacing"><div class="pic"></div></div>' +
       '<div class="message"></div>' +
@@ -373,15 +376,15 @@ FriendlyChat.MESSAGE_TEMPLATE =
     '</div>';
 
 // A loading image URL.
-FriendlyChat.LOADING_IMAGE_URL = 'https://www.google.com/images/spin-32.gif';
+JawApp.LOADING_IMAGE_URL = 'https://www.google.com/images/spin-32.gif';
 
 // Displays a Message in the UI.
-FriendlyChat.prototype.displayMessage = function(key, name, text, picUrl, imageUri, sentDate) {
+JawApp.prototype.displayMessage = function(key, name, text, picUrl, imageUri, sentDate) {
   var div = document.getElementById(key);
   // If an element for that message does not exists yet we create it.
   if (!div) {
     var container = document.createElement('div');
-    container.innerHTML = FriendlyChat.MESSAGE_TEMPLATE;
+    container.innerHTML = JawApp.MESSAGE_TEMPLATE;
     div = container.firstChild;
     div.setAttribute('id', key);
     this.messageList.appendChild(div);
@@ -428,7 +431,7 @@ FriendlyChat.prototype.displayMessage = function(key, name, text, picUrl, imageU
 };
 // Enables or disables the submit button depending on the values of the input
 // fields.
-FriendlyChat.prototype.toggleButton = function() {
+JawApp.prototype.toggleButton = function() {
   if (this.messageInput.value) {
     this.submitButton.removeAttribute('disabled');
   } else {
@@ -437,7 +440,7 @@ FriendlyChat.prototype.toggleButton = function() {
 };
 
 // Checks that the Firebase SDK has been correctly setup and configured.
-FriendlyChat.prototype.checkSetup = function() {
+JawApp.prototype.checkSetup = function() {
   if (!window.firebase || !(firebase.app instanceof Function) || !firebase.app().options) {
     window.alert('You have not configured and imported the Firebase SDK. ' +
         'Make sure you go through the codelab setup instructions and make ' +
@@ -445,6 +448,38 @@ FriendlyChat.prototype.checkSetup = function() {
   }
 };
 
+// Function for encrypting messages and converting them to hex for storage
+JawApp.prototype.encryptMessage = function(message) {
+  // Set the key to any 128 or 256 bit key
+  var key = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ];
+  // Convert the string to bytes
+  var textBytes = aesjs.utils.utf8.toBytes(message);
+  // Setup encrytor
+  var aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(5));
+  // Encrypt the bytes
+  var encryptedBytes = aesCtr.encrypt(textBytes);
+  // Convert to hex for storage
+  var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
+  // Return the encrypted hex string
+  return encryptedHex;
+}
+
+// Decrypt messages when received
+JawApp.prototype.decryptMessage = function(encryptedMessage){
+  // Set the key to any 128 or 256 bit key
+  var key = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ];
+  // Decrypt
+  var encryptedBytes = aesjs.utils.hex.toBytes(encryptedMessage);
+  // Must set a new decrypted instance because of the internal state of the
+  // counter mode
+  var aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(5));
+  var decryptedBytes = aesCtr.decrypt(encryptedBytes);
+  // Convert the bytes into text
+  var decryptedText = aesjs.utils.utf8.fromBytes(decryptedBytes);
+  // Return the decrypted message
+  return decryptedText;
+}
+
 window.onload = function() {
-  window.friendlyChat = new FriendlyChat();
+  window.jawApp = new JawApp();
 };
