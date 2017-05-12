@@ -31,7 +31,8 @@ The iOS project has not been started yet :(
 
 * [Firebase](https://firebase.google.com/)
 * [Android Studio](https://developer.android.com/studio/index.html)
-* [NodeJS](https://nodejs.org/en/)
+
+
 
 ## Contributing
 
@@ -49,6 +50,7 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 ## Authors
 
 * **Tyler Moon** - *Main Developer / Owner* - [tmoon8730](https://github.com/tmoon8730)
+* **Lawton Mizell** - *Main Developer* - [alcamech](https://github.com/Alcamech)
 
 See also the list of [contributors](https://github.com/tmoon8730/JawApp/blob/master/CONTRIBUTORS.txt) who participated in this project.
 
@@ -60,4 +62,5 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 * Hat tip to anyone who's code was used
 * Inspiration
+* Coffee
 * etc
