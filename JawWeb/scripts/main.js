@@ -74,7 +74,8 @@ JawApp.prototype.loadMessages = function() {
   // Loads the last 12 messages and listen for new ones.
   var setMessage = function(data) {
     var val = data.val();
-    this.displayMessage(data.key, val.name, val.text, val.photoUrl, val.imageUrl, val.sentDate); // Show the image in the view
+    var decryptedMessage = this.decryptMessage(val.text);
+    this.displayMessage(data.key, val.name, decryptedMessage, val.photoUrl, val.imageUrl, val.sentDate); // Show the image in the view
     this.saveKey(data.key); // Save the key to the currentUser as the most recently read
   }.bind(this);
   this.messagesRef.limitToLast(50).on('child_added', setMessage); // Event listener for added elements
@@ -162,8 +163,8 @@ JawApp.prototype.saveMessage = function(e) {
     var currentUser = this.auth.currentUser;
     // Get the current date for the date-stamp
     var date = new Date().toLocaleString();
-    // Encrypt the text using the security module
-    var encryptedMessage = JawAppSecurity.encrypt(this.messageInput.value);
+    // Encrypt the message value
+    var encryptedMessage = this.encryptMessage(this.messageInput.value);
     // Add a new message entry to the Firebase Database.
     this.messagesRef.push({
       name: currentUser.displayName,
@@ -468,12 +469,12 @@ JawApp.prototype.encryptMessage = function(message) {
 JawApp.prototype.decryptMessage = function(encryptedMessage){
   // Set the key to any 128 or 256 bit key
   var key = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ];
-  // Decrypt
-  var encryptedBytes = aesjs.utils.hex.toBytes(encryptedMessage);
+  // hex
+  var hexBytes = aesjs.utils.hex.toBytes(encryptedMessage);
   // Must set a new decrypted instance because of the internal state of the
   // counter mode
   var aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(5));
-  var decryptedBytes = aesCtr.decrypt(encryptedBytes);
+  var decryptedBytes = aesCtr.decrypt(hexBytes);
   // Convert the bytes into text
   var decryptedText = aesjs.utils.utf8.fromBytes(decryptedBytes);
   // Return the decrypted message
