@@ -22,11 +22,11 @@
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/indicatorImageView"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:src="@drawable/ic_account_circle_black_36dp"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
         android:layout_above="@+id/linearLayout"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:src="@drawable/ic_account_circle_black_36dp" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
