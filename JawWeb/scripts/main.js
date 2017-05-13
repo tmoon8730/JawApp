@@ -74,7 +74,12 @@ JawApp.prototype.loadMessages = function() {
   // Loads the last 12 messages and listen for new ones.
   var setMessage = function(data) {
     var val = data.val();
-    var decryptedMessage = this.decryptMessage(val.text);
+    var decryptedMessage;
+
+    if(data.imageUrl === undefined){
+      console.log("DATa.imageUrl: " + data.imageUrl);
+      decryptedMessage = this.decryptMessage(val.text);
+    }
     this.displayMessage(data.key, val.name, decryptedMessage, val.photoUrl, val.imageUrl, val.sentDate); // Show the image in the view
     this.saveKey(data.key); // Save the key to the currentUser as the most recently read
   }.bind(this);
@@ -246,10 +251,15 @@ JawApp.prototype.saveImageMessage = function(event) {
 
     // We add a message with a loading icon that will get updated with the shared image.
     var currentUser = this.auth.currentUser;
+
+    // Get the current date for the date-stamp
+    var date = new Date().toLocaleString();
+
     this.messagesRef.push({
       name: currentUser.displayName,
       imageUrl: JawApp.LOADING_IMAGE_URL,
-      photoUrl: currentUser.photoURL || '/images/profile_placeholder.png'
+      photoUrl: currentUser.photoURL || '/images/profile_placeholder.png',
+      sentDate: date
     }).then(function(data) {
 
       // Upload the image to Firebase Storage.
@@ -469,14 +479,22 @@ JawApp.prototype.encryptMessage = function(message) {
 JawApp.prototype.decryptMessage = function(encryptedMessage){
   // Set the key to any 128 or 256 bit key
   var key = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ];
-  // hex
-  var hexBytes = aesjs.utils.hex.toBytes(encryptedMessage);
-  // Must set a new decrypted instance because of the internal state of the
-  // counter mode
-  var aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(5));
-  var decryptedBytes = aesCtr.decrypt(hexBytes);
-  // Convert the bytes into text
-  var decryptedText = aesjs.utils.utf8.fromBytes(decryptedBytes);
+  // Make sure that the message isn't undefined
+  if(encryptedMessage !== undefined){
+    // Make sure the array does not contain NaN
+    if(!encryptedMessage.includes(NaN)){
+      // hex
+      var hexBytes = aesjs.utils.hex.toBytes(encryptedMessage);
+      // Must set a new decrypted instance because of the internal state of the
+      // counter mode
+      if(!hexBytes.includes(NaN)){
+        var aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(5));
+        var decryptedBytes = aesCtr.decrypt(hexBytes);
+        // Convert the bytes into text
+        var decryptedText = aesjs.utils.utf8.fromBytes(decryptedBytes);
+      }
+    }
+  }
   // Return the decrypted message
   return decryptedText;
 }
