@@ -595,12 +595,17 @@ public class MainActivity extends AppCompatActivity
      *
      */
     private void userIndicatorAnim(final MessageViewHolder viewHolder,FriendlyMessage friendlyMessage) {
+        ImageView img= (ImageView) findViewById(R.id.indicatorImageView);
+        img.setVisibility(View.GONE);
 
-        if(detectConnectionState()==true) { //if user connnection is true load image into user indicator view
-            ImageView img= (ImageView) findViewById(R.id.indicatorImageView);
+        if(detectConnectionState()) { //if user connnection is true load image into user indicator view
+            img.setVisibility(View.VISIBLE);
             Picasso.with(this).load(mFirebaseUser.getPhotoUrl()).into(img);
+        } else {
+
         }
 
+        /*
         final ScaleAnimation growAnim = new ScaleAnimation(1.0f, 1.15f, 1.0f, 1.15f);
         final ScaleAnimation shrinkAnim = new ScaleAnimation(1.15f, 1.0f, 1.15f, 1.0f);
 
@@ -640,5 +645,6 @@ public class MainActivity extends AppCompatActivity
                 growAnim.start();
             }
         });
+     */
     }
 }
