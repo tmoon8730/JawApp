@@ -17,6 +17,8 @@ package com.google.firebase.codelab.friendlychat;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -76,7 +78,13 @@ import com.google.firebase.appindexing.builders.PersonBuilder;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -107,6 +115,7 @@ public class MainActivity extends AppCompatActivity
         ImageView messageImageView;
         TextView messengerTextView;
         CircleImageView messengerImageView;
+        CircleImageView indicatorImageView;
 
         public MessageViewHolder(View v) {
             super(v);
@@ -114,6 +123,7 @@ public class MainActivity extends AppCompatActivity
             messageImageView = (ImageView) itemView.findViewById(R.id.messageImageView);
             messengerTextView = (TextView) itemView.findViewById(R.id.messengerTextView);
             messengerImageView = (CircleImageView) itemView.findViewById(R.id.messengerImageView);
+            indicatorImageView = (CircleImageView) itemView.findViewById(R.id.indicatorImageView);
         }
     }
 
@@ -130,6 +140,7 @@ public class MainActivity extends AppCompatActivity
     private SharedPreferences mSharedPreferences;
     private GoogleApiClient mGoogleApiClient;
     private static final String MESSAGE_URL = "http://friendlychat.firebase.google.com/message/";
+    private static boolean connectionValue;
 
     private Button mSendButton;
     private RecyclerView mMessageRecyclerView;
@@ -215,7 +226,7 @@ public class MainActivity extends AppCompatActivity
                     userUpdates.put("present", true);
                     mFirebaseDatabaseReference.child(friendlyMessage.getName()).updateChildren(userUpdates);
                     detectConnectionState();
-                    userIndicatorAnim(viewHolder);
+                    userIndicatorAnim(viewHolder,friendlyMessage);
 
                 } else {
                     String imageUrl = friendlyMessage.getImageUrl();
@@ -245,7 +256,6 @@ public class MainActivity extends AppCompatActivity
                     viewHolder.messageImageView.setVisibility(ImageView.VISIBLE);
                     viewHolder.messageTextView.setVisibility(TextView.GONE);
                 }
-
 
                 viewHolder.messengerTextView.setText(friendlyMessage.getName());
                 if (friendlyMessage.getPhotoUrl() == null) {
@@ -538,7 +548,7 @@ public class MainActivity extends AppCompatActivity
     /*
      * determine connect and disconnect state for current users dialog.
      */
-    private void detectConnectionState() {
+    private boolean detectConnectionState() {
 
         DatabaseReference connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected");
         final Map<String, Object> userUpdates = new HashMap<>();
@@ -550,11 +560,15 @@ public class MainActivity extends AppCompatActivity
                 boolean connected = snapshot.getValue(Boolean.class);
                 if (connected) { //database state is connected
                     userUpdates.put("present", true);
+                    connectionValue = true;
+                    //Log.v("", Boolean.toString(connectionValue));
                     mFirebaseDatabaseReference.child(user.getDisplayName()).updateChildren(userUpdates);
                     System.out.println("connected");
 
                 } else { //database state is disconnected
                     userUpdates.put("present", false);
+                    connectionValue = false;
+                    //Log.v("", Boolean.toString(connectionValue));
                     mFirebaseDatabaseReference.child(user.getDisplayName()).updateChildren(userUpdates);
                     System.out.println("not connected");
                 }
@@ -565,6 +579,8 @@ public class MainActivity extends AppCompatActivity
                 System.err.println("Listener was cancelled");
             }
         });
+
+        return connectionValue;
     }
 
     /*
@@ -578,7 +594,13 @@ public class MainActivity extends AppCompatActivity
      * TODO - Have user indicators displayed in the bottom of the chat
      *
      */
-    private void userIndicatorAnim(final MessageViewHolder viewHolder) {
+    private void userIndicatorAnim(final MessageViewHolder viewHolder,FriendlyMessage friendlyMessage) {
+
+        if(detectConnectionState()==true) { //if user connnection is true load image into user indicator view
+            ImageView img= (ImageView) findViewById(R.id.indicatorImageView);
+            Picasso.with(this).load(mFirebaseUser.getPhotoUrl()).into(img);
+        }
+
         final ScaleAnimation growAnim = new ScaleAnimation(1.0f, 1.15f, 1.0f, 1.15f);
         final ScaleAnimation shrinkAnim = new ScaleAnimation(1.15f, 1.0f, 1.15f, 1.0f);
 

@@ -15,7 +15,18 @@
         android:id="@+id/messageRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/linearLayout"/>
+        android:layout_alignParentStart="true"
+        android:layout_above="@+id/indicatorImageView">
+
+    </android.support.v7.widget.RecyclerView>
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/indicatorImageView"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:src="@drawable/ic_account_circle_black_36dp"
+        android:layout_above="@+id/linearLayout"
+        android:layout_alignParentStart="true" />
 
     <LinearLayout
         android:id="@+id/linearLayout"

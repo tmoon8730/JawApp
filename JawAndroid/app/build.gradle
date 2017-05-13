@@ -54,6 +54,9 @@ dependencies {
     // On-device Index
     compile 'com.google.firebase:firebase-appindexing:10.2.1'
 
+    //Picasso
+    compile 'com.squareup.picasso:picasso:2.5.2'
+
     // Testing dependencies
     androidTestCompile 'junit:junit:4.12'
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'
