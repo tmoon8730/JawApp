@@ -590,8 +590,7 @@ public class MainActivity extends AppCompatActivity
      *
      * EXPERIMENTAL
      *
-     * TODO - toggle animations for users who are present vs not present
-     * TODO - Have user indicators displayed in the bottom of the chat
+     * TODO - Create proper animations
      *
      */
     private void userIndicatorAnim(final MessageViewHolder viewHolder,FriendlyMessage friendlyMessage) {
