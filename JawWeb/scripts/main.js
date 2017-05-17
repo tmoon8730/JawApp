@@ -224,12 +224,15 @@ FriendlyChat.prototype.setVideoUrl = function(imageUri, vidElement){
   if(imageUri.startsWith('gs://')){
     source.src = FriendlyChat.LOADING_IMAGE_URL;
     this.storage.refFromURL(imageUri).getMetadata().then(function(metadata){
+      console.log("loaded video")
+      console.log(metadata.downloadURLs);
       source.src = metadata.downloadURLs[0];
+      source.type = metadata.contentType;
+      vidElement.appendChild(source);
     });
   } else {
     source.src = imageUri;
   }
-  vidElement.appendChild(source);
 };
 
 // Saves a new message containing an image URI in Firebase.
@@ -429,15 +432,20 @@ FriendlyChat.prototype.displayMessage = function(key, name, text, picUrl, imageU
     messageElement.innerHTML = messageElement.innerHTML.replace(/\n/g, '<br>');
   } else if (imageUri) {
     // TODO: Support more than just .mp4s
-    if(imageUri.includes('.mp4')){
+    if(imageUri.includes('.webm')){
       // The message is a video
       var video = document.createElement('video');
-      video.addEventListener('load', function() {
-        this.messageList.scrollTop = this.messageList.scrollHeight;
-      }.bind(this));
+
       this.setVideoUrl(imageUri, video);
       video.width = '300';
       video.height = '200';
+      video.autoplay = true;
+      video.loop = true;
+      video.controls = true;
+      video.muted = true;
+      video.addEventListener('load', function() {
+        this.messageList.scrollTop = this.messageList.scrollHeight;
+      }.bind(this));
       messageElement.innerHTML = '';
       messageElement.appendChild(video);
     }else{
