@@ -218,6 +218,20 @@ FriendlyChat.prototype.setImageUrl = function(imageUri, imgElement) {
   }
 };
 
+// Sets the URL of the given video element
+FriendlyChat.prototype.setVideoUrl = function(imageUri, vidElement){
+  var source = document.createElement('source');
+  if(imageUri.startsWith('gs://')){
+    source.src = FriendlyChat.LOADING_IMAGE_URL;
+    this.storage.refFromURL(imageUri).getMetadata().then(function(metadata){
+      source.src = metadata.downloadURLs[0];
+    });
+  } else {
+    source.src = imageUri;
+  }
+  vidElement.appendChild(source);
+};
+
 // Saves a new message containing an image URI in Firebase.
 // This first saves the image in Firebase storage.
 FriendlyChat.prototype.saveImageMessage = function(event) {
@@ -228,7 +242,7 @@ FriendlyChat.prototype.saveImageMessage = function(event) {
   this.imageForm.reset();
 
   // Check if the file is an image.
-  if (!file.type.match('image.*')) {
+  if (!file.type.match('image.*') && !file.type.match('video.*')) {
     var data = {
       message: 'You can only share images',
       timeout: 2000
@@ -236,6 +250,7 @@ FriendlyChat.prototype.saveImageMessage = function(event) {
     this.signInSnackbar.MaterialSnackbar.showSnackbar(data);
     return;
   }
+
 
   // Check if the user is signed-in
   if (this.checkSignedInWithMessage()) {
@@ -412,14 +427,29 @@ FriendlyChat.prototype.displayMessage = function(key, name, text, picUrl, imageU
     messageElement.textContent = text;
     // Replace all line breaks by <br>.
     messageElement.innerHTML = messageElement.innerHTML.replace(/\n/g, '<br>');
-  } else if (imageUri) { // If the message is an image.
-    var image = document.createElement('img');
-    image.addEventListener('load', function() {
-      this.messageList.scrollTop = this.messageList.scrollHeight;
-    }.bind(this));
-    this.setImageUrl(imageUri, image);
-    messageElement.innerHTML = '';
-    messageElement.appendChild(image);
+  } else if (imageUri) {
+    // TODO: Support more than just .mp4s
+    if(imageUri.includes('.mp4')){
+      // The message is a video
+      var video = document.createElement('video');
+      video.addEventListener('load', function() {
+        this.messageList.scrollTop = this.messageList.scrollHeight;
+      }.bind(this));
+      this.setVideoUrl(imageUri, video);
+      video.width = '300';
+      video.height = '200';
+      messageElement.innerHTML = '';
+      messageElement.appendChild(video);
+    }else{
+      // If the message is an image.
+      var image = document.createElement('img');
+      image.addEventListener('load', function() {
+        this.messageList.scrollTop = this.messageList.scrollHeight;
+      }.bind(this));
+      this.setImageUrl(imageUri, image);
+      messageElement.innerHTML = '';
+      messageElement.appendChild(image);
+    }
   }
   // Show the card fading-in and scroll to view the new message.
   setTimeout(function() {div.classList.add('visible')}, 1);
