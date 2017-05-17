@@ -432,7 +432,7 @@ FriendlyChat.prototype.displayMessage = function(key, name, text, picUrl, imageU
     messageElement.innerHTML = messageElement.innerHTML.replace(/\n/g, '<br>');
   } else if (imageUri) {
     // TODO: Support more than just .mp4s
-    if(imageUri.includes('.webm')){
+    if(imageUri.includes('.webm') || imageUri.includes('.mp4') || imageUri.includes('.ogg')){
       // The message is a video
       var video = document.createElement('video');
 
