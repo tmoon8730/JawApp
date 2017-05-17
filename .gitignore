@@ -9,3 +9,6 @@ node_modules/
 
 # Keep out the log from Firebase serves
 JawWeb/*.log
+JawPlayground/encryptionTesting.js
+JawPlayground/javascriptEncryption.js
+JawPlayground/testingCallingEncryption.js
