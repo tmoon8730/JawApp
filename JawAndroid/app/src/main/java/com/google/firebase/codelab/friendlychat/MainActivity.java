@@ -594,6 +594,10 @@ public class MainActivity extends AppCompatActivity
      *
      */
     private void userIndicatorAnim(final MessageViewHolder viewHolder,FriendlyMessage friendlyMessage) {
+        //get a reference to our users
+        final FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference ref = database.getReference("/currentUsers");
+
         ImageView img= (ImageView) findViewById(R.id.indicatorImageView);
         img.setVisibility(View.GONE);
 
@@ -603,6 +607,7 @@ public class MainActivity extends AppCompatActivity
         } else {
 
         }
+
 
         /*
         final ScaleAnimation growAnim = new ScaleAnimation(1.0f, 1.15f, 1.0f, 1.15f);
