@@ -85,8 +85,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -549,28 +551,24 @@ public class MainActivity extends AppCompatActivity
      * determine connect and disconnect state for current users dialog.
      */
     private boolean detectConnectionState() {
-
         DatabaseReference connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected");
-        final Map<String, Object> userUpdates = new HashMap<>();
-        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        //get a reference to our users
+        final FirebaseDatabase database = FirebaseDatabase.getInstance();
+        final DatabaseReference currentUserRef = database.getReference("/currentUsers").child(mFirebaseUser.getDisplayName());
 
         connectedRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 boolean connected = snapshot.getValue(Boolean.class);
-                if (connected) { //database state is connected
-                    userUpdates.put("present", true);
+                if (connected) {
+                    currentUserRef.child("present").setValue(true);
                     connectionValue = true;
-                    //Log.v("", Boolean.toString(connectionValue));
-                    mFirebaseDatabaseReference.child(user.getDisplayName()).updateChildren(userUpdates);
-                    System.out.println("connected");
-
-                } else { //database state is disconnected
-                    userUpdates.put("present", false);
+                    //System.out.println("connected");
+                } else {
+                    currentUserRef.child("present").setValue(false);
                     connectionValue = false;
-                    //Log.v("", Boolean.toString(connectionValue));
-                    mFirebaseDatabaseReference.child(user.getDisplayName()).updateChildren(userUpdates);
-                    System.out.println("not connected");
+                    //System.out.println("not connected");
                 }
             }
 
@@ -597,6 +595,19 @@ public class MainActivity extends AppCompatActivity
         //get a reference to our users
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference ref = database.getReference("/currentUsers");
+
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                //Get map of users in datasnapshot
+                collectUsers((Map<String,Object>) dataSnapshot.getValue());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
         ImageView img= (ImageView) findViewById(R.id.indicatorImageView);
         img.setVisibility(View.GONE);
@@ -650,5 +661,22 @@ public class MainActivity extends AppCompatActivity
             }
         });
      */
+    }
+
+    private void collectUsers(Map<String,Object> users) {
+        ArrayList<String> userNames = new ArrayList<>();
+
+        //iterate through each user
+        for (Map.Entry<String, Object> entry : users.entrySet()) {
+            //Get user map
+            Map singleUser = (Map) entry.getValue();
+
+            if(singleUser.get("present").equals(true)) {
+                //Get username field and append to list
+                userNames.add((String) singleUser.get("name"));
+            }
+        }
+
+        System.out.println("CURRENT USERS: "+userNames.toString());
     }
 }
