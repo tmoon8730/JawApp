@@ -74,6 +74,8 @@ FriendlyChat.prototype.loadMessages = function() {
     var val = data.val();
     this.displayMessage(data.key, val.name, val.text, val.photoUrl, val.imageUrl, val.sentDate); // Show the image in the view
     this.saveKey(data.key); // Save the key to the currentUser as the most recently read
+    console.log("upadte?");
+    //this.setCurrentUsers();
   }.bind(this);
   this.messagesRef.limitToLast(50).on('child_added', setMessage); // Event listener for added elements
   this.messagesRef.limitToLast(50).on('child_changed', setMessage); // Event listener for changed elements
@@ -108,8 +110,10 @@ FriendlyChat.prototype.setCurrentUsers = function(){
   // Bind function for changes in the connection reference
   var setPresent = function(data){
     if(data.val() === true){
+      console.log("CURRENT USERS PHOTO: " + this.currentUser.photoURL);
       // Connected
       this.currentUsersRef.update({
+          photoUrl: this.currentUser.photoURL,
           present: true
         });
     }
@@ -127,22 +131,24 @@ FriendlyChat.prototype.setCurrentUsers = function(){
     var div = document.getElementById('currentUsersText');
 
     if(data.val().present == true){
-      var checkName = '.' + data.val().name.replace(' ','');
-      var queryCheck = div.querySelector(checkName);
+      var checkName = data.val().name.replace(' ','');
+      var queryCheck = document.getElementById(checkName);
       console.log("checkName " + checkName + " check " + queryCheck);
       if(queryCheck == null){
         var user = document.createElement('div');
         user.innerHTML = FriendlyChat.USER_TEMPLATE;
-        user.setAttribute('class',data.val().name.replace(' ',''));
+        user.setAttribute('id',data.val().name.replace(' ',''));
 
         if(data.val().photoUrl)
-          user.querySelector('.pic').style.content = 'url(' + data.val().photoUrl /* "https:\/\/lh3.googleusercontent.com/-GblqLhBzE2Y/AAAAAAAAAAI/AAAAAAAAkG0/zz7dLUckhto/photo.jpg"*/ + ')';
+          user.querySelector('.pic').style.content = 'url(' + data.val().photoUrl + ')';
         user.querySelector('.name').textContent = data.val().name;
 
         div.appendChild(user);
       }
     }else{
-      console.log("eh");
+      console.log("eh" + data.val().name);
+      // Remove the user since they are no longer present
+      document.getElementById(data.val().name.replace(' ','')).remove();
     }
   }.bind(this);
 
