@@ -23,6 +23,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.StringDef;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -66,6 +67,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
@@ -87,6 +89,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 
@@ -591,7 +595,7 @@ public class MainActivity extends AppCompatActivity
      * TODO - Create proper animations
      *
      */
-    private void userIndicatorAnim(final MessageViewHolder viewHolder,FriendlyMessage friendlyMessage) {
+    private void userIndicatorAnim(final MessageViewHolder viewHolder, final FriendlyMessage friendlyMessage) {
         //get a reference to our users
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference ref = database.getReference("/currentUsers");
@@ -599,8 +603,16 @@ public class MainActivity extends AppCompatActivity
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                HashSet<String> currentUsers = new HashSet<>();
+
                 //Get map of users in datasnapshot
-                collectUsers((Map<String,Object>) dataSnapshot.getValue());
+                for(DataSnapshot userSnapshot: dataSnapshot.getChildren()) {
+                    if(userSnapshot.child("present").getValue() != null) {
+                        if(userSnapshot.child("present").getValue().equals(true)) {
+                            //TODO
+                        }
+                    }
+                }
             }
 
             @Override
@@ -618,65 +630,5 @@ public class MainActivity extends AppCompatActivity
         } else {
 
         }
-
-
-        /*
-        final ScaleAnimation growAnim = new ScaleAnimation(1.0f, 1.15f, 1.0f, 1.15f);
-        final ScaleAnimation shrinkAnim = new ScaleAnimation(1.15f, 1.0f, 1.15f, 1.0f);
-
-        growAnim.setDuration(2000);
-        shrinkAnim.setDuration(2000);
-
-        viewHolder.messengerImageView.setAnimation(growAnim);
-        growAnim.start();
-
-        growAnim.setAnimationListener(new Animation.AnimationListener()
-        {
-            @Override
-            public void onAnimationStart(Animation animation){}
-
-            @Override
-            public void onAnimationRepeat(Animation animation){}
-
-            @Override
-            public void onAnimationEnd(Animation animation)
-            {
-                viewHolder.messengerImageView.setAnimation(shrinkAnim);
-                shrinkAnim.start();
-            }
-        });
-        shrinkAnim.setAnimationListener(new Animation.AnimationListener()
-        {
-            @Override
-            public void onAnimationStart(Animation animation){}
-
-            @Override
-            public void onAnimationRepeat(Animation animation){}
-
-            @Override
-            public void onAnimationEnd(Animation animation)
-            {
-                viewHolder.messengerImageView.setAnimation(growAnim);
-                growAnim.start();
-            }
-        });
-     */
-    }
-
-    private void collectUsers(Map<String,Object> users) {
-        ArrayList<String> userNames = new ArrayList<>();
-
-        //iterate through each user
-        for (Map.Entry<String, Object> entry : users.entrySet()) {
-            //Get user map
-            Map singleUser = (Map) entry.getValue();
-
-            if(singleUser.get("present").equals(true)) {
-                //Get username field and append to list
-                userNames.add((String) singleUser.get("name"));
-            }
-        }
-
-        System.out.println("CURRENT USERS: "+userNames.toString());
     }
 }
